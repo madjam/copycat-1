@@ -39,7 +39,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
-final class LeaderState extends ActiveState {
+class LeaderState extends ActiveState {
   private static final int MAX_BATCH_SIZE = 1024 * 28;
   private Scheduled currentTimer;
   private final Replicator replicator = new Replicator();
@@ -237,7 +237,7 @@ final class LeaderState extends ActiveState {
     context.checkThread();
     logRequest(request);
 
-    if (context.getCluster().getMember(request.member().hashCode()) == null) {
+    if (!context.getAddress().equals(request.member()) && context.getCluster().getMember(request.member().hashCode()) == null) {
       return CompletableFuture.completedFuture(logResponse(LeaveResponse.builder()
         .withStatus(Response.Status.OK)
         .build()));
@@ -258,11 +258,6 @@ final class LeaderState extends ActiveState {
         .setPassive(passiveMembers);
       index = context.getLog().append(entry);
       LOGGER.debug("{} - Appended {} to log at index {}", context.getAddress(), entry, index);
-
-      // Immediately apply the configuration change. No need to validate whether this node was changed
-      // to PASSIVE since it's the leader and would have already transitioned to the LEAVE state if
-      // it were leaving the cluster.
-      context.getCluster().configure(entry.getIndex(), entry.getActive(), entry.getPassive());
     }
 
     CompletableFuture<LeaveResponse> future = new CompletableFuture<>();
@@ -270,6 +265,7 @@ final class LeaderState extends ActiveState {
       context.checkThread();
       if (isOpen()) {
         if (commitError == null) {
+          context.getCluster().configure(index, activeMembers, passiveMembers);
           future.complete(logResponse(LeaveResponse.builder()
             .withStatus(Response.Status.OK)
             .build()));

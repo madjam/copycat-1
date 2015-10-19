@@ -125,8 +125,9 @@ public class ServerContext implements Managed<ServerState> {
         }
       });
 
-      state.transition(CopycatServer.State.LEAVE);
-    });
+      CopycatServer.State nextState = state.getState() == CopycatServer.State.LEADER ? CopycatServer.State.RENOUNCE : CopycatServer.State.LEAVE;
+      state.transition(nextState);
+    }) ;
     return future;
   }
 

@@ -112,8 +112,15 @@ public interface RaftServer extends Managed<RaftServer> {
      * Leaders are responsible for handling and replicating writes from clients. Note that more than one leader can
      * exist at any given time, but Raft guarantees that no two leaders will exist for the same {@link #term()}.
      */
-    LEADER
+    LEADER,
 
+    /**
+     * Represents the state of a server that is about to give up leadership and leave the cluster.
+     * <p>
+     * When a server that is currently the leader is {@link #close() stopped}, the server will first transition
+     * to the RENOUNCE state and remove itself from the cluster configuration before ultimately transitioning into inactive state.
+     */
+    RENOUNCE
   }
 
   /**

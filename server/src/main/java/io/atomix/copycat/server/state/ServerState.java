@@ -481,6 +481,8 @@ public class ServerState {
         return new CandidateState(this);
       case LEADER:
         return new LeaderState(this);
+      case RENOUNCE:
+        return new RenounceState(this);
       default:
         throw new AssertionError();
     }
