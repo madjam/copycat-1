@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @author <a href="http://github.com/kuujo">Jordan Halterman</a>
  */
-final class LeaveState extends InactiveState {
+final class LeaveState extends ActiveState {
   private Scheduled leaveFuture;
 
   public LeaveState(ServerState context) {
